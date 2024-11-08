@@ -20,6 +20,11 @@ impl GameLoop {
         Ok(GameLoop { window })
     }
 
+    pub fn run(&mut self) -> Result<(), String> {
+        self.handle_loop();
+        Ok(())
+    }
+
     fn handle_loop(&mut self) {
         let tex_creator = &self.window.canvas.texture_creator();
 
@@ -36,7 +41,7 @@ impl GameLoop {
 
             match self.handle_input(&mut event_pump) {
                 true => {}
-                false => {break 'running}
+                false => { break 'running }
             };
 
             // The rest of the game loop goes here...
@@ -63,15 +68,10 @@ impl GameLoop {
         return true;
     }
 
-    pub fn render(&mut self, tex_creator: &TextureCreator<WindowContext>) -> Result<(), String> {
+    fn render(&mut self, tex_creator: &TextureCreator<WindowContext>) -> Result<(), String> {
         let mut texture_manager = TextureManager::new(tex_creator);
         texture_manager.load_texture(Path::new("./assets/tile_hidden.png")).expect("Failed to load texture");
         texture_manager.render_texture(&mut self.window.canvas, Rect::new(0, 0, 100, 100))?;
-        Ok(())
-    }
-
-    pub fn run(&mut self) -> Result<(), String> {
-        self.handle_loop();
         Ok(())
     }
 }
