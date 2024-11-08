@@ -65,7 +65,7 @@ impl GameLoop {
 
     pub fn render(&mut self, tex_creator: &TextureCreator<WindowContext>) -> Result<(), String> {
         let mut texture_manager = TextureManager::new(tex_creator);
-        texture_manager.load_texture(Path::new("/Users/asifislam/Rust_Engine_2/assets/tile_hidden.png")).expect("Failed to load texture");
+        texture_manager.load_texture(Path::new("./assets/tile_hidden.png")).expect("Failed to load texture");
         texture_manager.render_texture(&mut self.window.canvas, Rect::new(0, 0, 100, 100))?;
         Ok(())
     }
