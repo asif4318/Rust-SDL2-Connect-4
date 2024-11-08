@@ -20,7 +20,7 @@ impl GameLoop {
         Ok(GameLoop { window })
     }
 
-    pub fn handle_loop(&mut self) {
+    fn handle_loop(&mut self) {
         let tex_creator = &self.window.canvas.texture_creator();
 
         let mut event_pump = self.window.sdl_context.event_pump()
