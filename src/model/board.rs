@@ -1,24 +1,9 @@
 extern crate sdl2;
-use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl2::render::Canvas;
+use sdl2::render::{Canvas};
 use sdl2::video::{Window};
+use crate::model::tilestate::TileState;
 use crate::texture_manager::TextureManager;
-
-pub enum TileState {
-    EMPTY = 0,
-    YELLOW = 1,
-    RED = 2
-}
-impl Clone for TileState {
-    fn clone(&self) -> Self {
-        match self {
-            TileState::EMPTY => TileState::EMPTY,
-            TileState::RED  => TileState::RED,
-            TileState::YELLOW => TileState::YELLOW,
-        }
-    }
-}
 
 pub struct BoardTiles {
     pub grid: Vec<Vec<TileState>>,
@@ -29,28 +14,67 @@ impl BoardTiles {
         let grid = vec![vec![TileState::EMPTY; 7]; 6];
         BoardTiles { grid }
     }
+    fn size(&self) -> (usize, usize) {
+        (self.grid.len(), self.grid[0].len())
+    }
 }
 
 pub struct Board {
-    pub screen_area: Rect,
-    pub clear_color: Color,
     pub tiles: BoardTiles,
 }
 
-
 impl Board {
-    fn draw_tiles(&self, tex_manager: &TextureManager, canvas: &mut Canvas<Window>) {
-        let mut position = (0,0);
-        for row in &self.tiles.grid {
-            for _ in row {
-                tex_manager.render_texture(canvas, Rect::new(position.0, position.1, 100, 100));
-                position.1 += 100;
+    fn draw_tiles(&self, tile_hidden: &TextureManager, tile_red: &TextureManager, tile_yellow: &TextureManager, canvas: &mut Canvas<Window>) {
+        let (x, y) = self.tiles.size();
+        for i in 0..x {
+            for j in 0..y {
+                match self.tiles.grid[i][j] {
+                    TileState::EMPTY => {
+                        let _ = tile_hidden.render_texture(canvas, Rect::new((j * 100) as i32, (i * 100) as i32, 100, 100));
+                    }
+                    TileState::YELLOW => {
+                        let _ = tile_yellow.render_texture(canvas, Rect::new((j * 100) as i32, (i * 100) as i32, 100, 100));
+                    }
+                    TileState::RED => {
+                        let _ = tile_red.render_texture(canvas, Rect::new((j * 100) as i32, (i * 100) as i32, 100, 100));
+                    }
+                }
             }
-            position.0 += 100;
-            position.1 = 0;
         }
     }
-    pub fn renderer(&self, canvas: &mut Canvas<Window>, texture_manager: &TextureManager) {
-        self.draw_tiles(texture_manager, canvas);
+
+    fn get_grid(&mut self) -> &mut Vec<Vec<TileState>> {
+        &mut self.tiles.grid
+    }
+
+    pub fn insert_chip(&mut self, column: u32, color: TileState) -> Option<(usize, usize)> {
+        let (rows, cols) = self.tiles.size();
+
+        // Check if col is within bounds
+        if column >= cols as u32 {
+            println!("Out of bounds!");
+            return None;
+        }
+
+        let ref_grid: &mut Vec<Vec<TileState>> = self.get_grid();
+
+        let mut i = rows;
+        while i != 0 {
+            i -= 1;
+            match ref_grid[i][column as usize] {
+                TileState::EMPTY => {
+                    println!("This row {} and this column {} is empty", i, column);
+                    ref_grid[i][column as usize] = color;
+                    break;
+                }
+                _ => {}
+            }
+        }
+
+        return None;
+    }
+
+    pub fn renderer(&self, canvas: &mut Canvas<Window>, tile_hidden: &TextureManager, tile_yellow: &TextureManager, tile_red: &TextureManager) {
+        self.draw_tiles(tile_hidden, tile_yellow, tile_red, canvas);
     }
 }
