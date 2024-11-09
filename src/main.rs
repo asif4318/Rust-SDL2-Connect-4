@@ -1,6 +1,7 @@
 mod window;
 mod gameloop;
 mod texture_manager;
+mod model;
 
 extern crate sdl2;
 use crate::gameloop::GameLoop;
