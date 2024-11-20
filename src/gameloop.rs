@@ -1,16 +1,13 @@
-use std::path::Path;
 use sdl2::event::Event;
 use sdl2::{EventPump};
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl2::render::{TextureCreator};
-use sdl2::video::WindowContext;
-use crate::texture_manager::TextureManager;
 use crate::window::Window;
 use crate::model::board::{Board, BoardTiles};
 use crate::model::gamestate::GameState;
+use crate::textures::GameTextures;
 
 pub(crate) struct GameLoop {
     pub window: Window,
@@ -23,7 +20,7 @@ impl GameLoop {
         let window = Window::new()?;
         let board = Board {
             tiles: BoardTiles::new(),
-            has_win: false
+            has_win: false,
         };
         let game_state = GameState::new();
         Ok(GameLoop { window, board, game_state })
@@ -36,6 +33,7 @@ impl GameLoop {
 
     fn handle_loop(&mut self) {
         let tex_creator = &self.window.canvas.texture_creator();
+        let game_textures = GameTextures::new(tex_creator);
 
         let mut event_pump = self.window.sdl_context.event_pump()
             .expect("SDL event pump failed.");
@@ -53,7 +51,7 @@ impl GameLoop {
             // The rest of the game loop goes here...
             let _ = self.window.canvas.set_draw_color(Color::BLACK);
             let _ = self.window.canvas.fill_rect(Rect::new(0, 0, 800, 600));
-            let _ = self.render(tex_creator);
+            let _ = self.render(&game_textures);
             self.window.canvas.present();
         }
     }
@@ -75,7 +73,7 @@ impl GameLoop {
                             println!("x: {} y:{}", mouse_position.0, mouse_position.1);
                             match self.board.insert_chip((mouse_position.0 / 100) as u32, self.game_state.turn) {
                                 None => {}
-                                Some(_) => {self.game_state.next_turn()}
+                                Some(_) => { self.game_state.next_turn() }
                             }
                         }
                         _ => {}
@@ -87,15 +85,13 @@ impl GameLoop {
         return true;
     }
 
-    fn render(&mut self, tex_creator: &TextureCreator<WindowContext>) -> Result<(), String> {
-        let mut tile_hidden = TextureManager::new(tex_creator);
-        tile_hidden.load_texture(Path::new("./assets/tile_empty.png")).expect("Failed to load texture");
-        let mut tile_red = TextureManager::new(tex_creator);
-        tile_red.load_texture(Path::new("./assets/tile_red.png")).expect("Failed to load texture");
-        let mut tile_yellow = TextureManager::new(tex_creator);
-        tile_yellow.load_texture(Path::new("./assets/tile_yellow.png")).expect("Failed to load texture");
-
-        self.board.renderer(&mut self.window.canvas, &tile_hidden, &tile_yellow, &tile_red);
+    fn render(&mut self, game_textures: &GameTextures) -> Result<(), String> {
+        self.board.renderer(
+            &mut self.window.canvas,
+            &game_textures.tile_hidden,
+            &game_textures.tile_yellow,
+            &game_textures.tile_red,
+        );
         Ok(())
     }
 }
