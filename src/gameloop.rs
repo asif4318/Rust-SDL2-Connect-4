@@ -10,11 +10,12 @@ use sdl2::video::WindowContext;
 use crate::texture_manager::TextureManager;
 use crate::window::Window;
 use crate::model::board::{Board, BoardTiles};
-use crate::model::tilestate::TileState;
+use crate::model::gamestate::GameState;
 
 pub(crate) struct GameLoop {
     pub window: Window,
     pub board: Board,
+    pub game_state: GameState,
 }
 
 impl GameLoop {
@@ -22,8 +23,10 @@ impl GameLoop {
         let window = Window::new()?;
         let board = Board {
             tiles: BoardTiles::new(),
+            has_win: false
         };
-        Ok(GameLoop { window, board })
+        let game_state = GameState::new();
+        Ok(GameLoop { window, board, game_state })
     }
 
     pub fn run(&mut self) -> Result<(), String> {
@@ -50,7 +53,7 @@ impl GameLoop {
             // The rest of the game loop goes here...
             let _ = self.window.canvas.set_draw_color(Color::BLACK);
             let _ = self.window.canvas.fill_rect(Rect::new(0, 0, 800, 600));
-            self.render(tex_creator);
+            let _ = self.render(tex_creator);
             self.window.canvas.present();
         }
     }
@@ -70,8 +73,10 @@ impl GameLoop {
                     match mouse_btn {
                         MouseButton::Left => {
                             println!("x: {} y:{}", mouse_position.0, mouse_position.1);
-                            self.board.insert_chip((mouse_position.0 / 100) as u32, TileState::RED);
-                            //self.board.insert_chip(TileState::YELLOW, mouse_position.0/100);
+                            match self.board.insert_chip((mouse_position.0 / 100) as u32, self.game_state.turn) {
+                                None => {}
+                                Some(_) => {self.game_state.next_turn()}
+                            }
                         }
                         _ => {}
                     }

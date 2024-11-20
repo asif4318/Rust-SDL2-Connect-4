@@ -2,3 +2,4 @@
 
 pub(crate) mod board;
 pub(crate) mod tilestate;
+pub(crate) mod gamestate;

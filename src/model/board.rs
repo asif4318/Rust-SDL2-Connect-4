@@ -1,4 +1,5 @@
 extern crate sdl2;
+
 use sdl2::rect::Rect;
 use sdl2::render::{Canvas};
 use sdl2::video::{Window};
@@ -21,6 +22,7 @@ impl BoardTiles {
 
 pub struct Board {
     pub tiles: BoardTiles,
+    pub has_win: bool,
 }
 
 impl Board {
@@ -47,6 +49,62 @@ impl Board {
         &mut self.tiles.grid
     }
 
+    fn count_in_direction(&self, position: (usize, usize), dr: isize, dc: isize, color: TileState) -> usize {
+        let mut count = 0;
+        let (mut row, mut col) = position;
+
+        // Keeps counting unless we hit the end of the board or a tile not of the desired color
+        loop {
+            let next_row = row as isize + dr;
+            let next_col = col as isize + dc;
+
+            if next_row < 0
+                || next_row >= self.tiles.grid.len() as isize
+                || next_col < 0
+                || next_col >= self.tiles.grid[0].len() as isize
+            {
+                break;
+            }
+
+            row = next_row as usize;
+            col = next_col as usize;
+
+            if self.tiles.grid[row][col] == color {
+                count += 1;
+            } else {
+                break;
+            }
+        }
+
+        count
+    }
+
+    fn check_win(&mut self, tile_position: (usize, usize), color: TileState) {
+        let directions = [
+            (0, 1),  // Horizontal right
+            (1, 0),  // Vertical down
+            (1, 1),  // Diagonal down-right
+            (1, -1), // Diagonal down-left
+        ];
+
+        for &(dr, dc) in &directions {
+            let mut count = 1;
+
+            // Check one direction
+            count += self.count_in_direction(tile_position, dr, dc, color);
+            // Check the opposite direction
+            count += self.count_in_direction(tile_position, -dr, -dc, color);
+
+            if count >= 4 {
+                self.has_win = true; // Found a winning line
+                return;
+            }
+        }
+
+        self.has_win = false;
+        return;
+    }
+
     pub fn insert_chip(&mut self, column: u32, color: TileState) -> Option<(usize, usize)> {
         let (rows, cols) = self.tiles.size();
 
@@ -65,16 +123,19 @@ impl Board {
                 TileState::EMPTY => {
                     println!("This row {} and this column {} is empty", i, column);
                     ref_grid[i][column as usize] = color;
-                    break;
+                    let coordinates = (i, column as usize);
+                    self.check_win(coordinates, color);
+                    println!("Has win: {}", self.has_win);
+                    return Some(coordinates);
                 }
                 _ => {}
             }
         }
 
-        return None;
+        None
     }
 
     pub fn renderer(&self, canvas: &mut Canvas<Window>, tile_hidden: &TextureManager, tile_yellow: &TextureManager, tile_red: &TextureManager) {
-        self.draw_tiles(tile_hidden, tile_yellow, tile_red, canvas);
+        self.draw_tiles(tile_hidden, tile_red, tile_yellow, canvas);
     }
 }

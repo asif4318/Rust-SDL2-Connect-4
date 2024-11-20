@@ -1,20 +1,12 @@
 use std::fmt::{Display, Formatter};
 
 #[derive(Copy)]
+#[derive(Clone)]
+#[derive(PartialEq)]
 pub enum TileState {
     EMPTY = 0,
     YELLOW = 1,
     RED = 2,
-}
-
-impl Clone for TileState {
-    fn clone(&self) -> Self {
-        match self {
-            TileState::EMPTY => TileState::EMPTY,
-            TileState::RED => TileState::RED,
-            TileState::YELLOW => TileState::YELLOW,
-        }
-    }
 }
 
 impl Display for TileState {
