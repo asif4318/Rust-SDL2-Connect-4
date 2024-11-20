@@ -4,4 +4,4 @@
 
 This project is my first time using Rust and is intended to be a personal learning experience.
 
-- First game to be implemented with this engine will be connect 4
+- First game to be implemented with this engine will be Connect 4.
