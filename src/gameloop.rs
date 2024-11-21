@@ -6,7 +6,7 @@ use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use crate::window::Window;
-use crate::model::board::{Board, BoardTiles};
+use crate::model::board::{Board};
 use crate::model::button::Button;
 use crate::model::gamestate::{GameCondition, GameState};
 use crate::model::tilestate::TileState;
@@ -22,10 +22,7 @@ pub(crate) struct GameLoop {
 impl GameLoop {
     pub fn new(name: &str) -> Result<Self, String> {
         let window = Window::new(name.into())?;
-        let board = Board {
-            tiles: BoardTiles::new(),
-            has_win: false,
-        };
+        let board = Board::new();
         let game_state = GameState::new();
         let reset_rect = Rect::new(710, 100, 80, 80);
         Ok(GameLoop { window, board, game_state, reset_rect })
@@ -33,10 +30,7 @@ impl GameLoop {
 
     pub fn reset(&mut self) {
         self.game_state = GameState::new();
-        self.board = Board {
-            tiles: BoardTiles::new(),
-            has_win: false,
-        };
+        self.board = Board::new();
         println!("Game Reset!");
     }
 
