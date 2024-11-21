@@ -10,18 +10,21 @@ pub struct Window {
 
 
 impl Window {
-    pub fn new() -> Result<Self, String> {
-        let sdl_context = sdl2::init()?;
-        let video_subsystem = sdl_context.video()?;
+    pub fn new(name: &str) -> Result<Self, String> {
+        let sdl_context = sdl2::init()
+            .expect("Failed to init SDL");
+        let video_subsystem = sdl_context.video()
+            .expect("Failed to init video subsystem");
 
-        let window = video_subsystem.window("Rust Engine", 800, 600)
+        let window = video_subsystem.window(name.into(), 800, 600)
             .position_centered()
             .build()
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| e.to_string())
+            .expect("Failed to build window");
 
         let canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
 
-        Ok(Self { sdl_context, canvas })
+        Ok(Self { sdl_context, canvas})
     }
 
     pub fn clear_canvas(&mut self) {
