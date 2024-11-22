@@ -12,20 +12,18 @@ use crate::model::gamestate::{GameCondition, GameState};
 use crate::model::tilestate::TileState;
 use crate::textures::GameTextures;
 
-pub(crate) struct GameLoop {
+pub(crate) struct Engine {
     pub window: Window,
     pub board: Board,
     pub game_state: GameState,
-    reset_rect: Rect,
 }
 
-impl GameLoop {
+impl Engine {
     pub fn new(name: &str) -> Result<Self, String> {
         let window = Window::new(name.into())?;
         let board = Board::new();
         let game_state = GameState::new();
-        let reset_rect = Rect::new(710, 100, 80, 80);
-        Ok(GameLoop { window, board, game_state, reset_rect })
+        Ok(Engine { window, board, game_state })
     }
 
     pub fn reset(&mut self) {
@@ -49,9 +47,10 @@ impl GameLoop {
 
         self.window.clear_canvas();
 
-        let reset_button = Button::new("Reset", self.reset_rect, &ttf_context);
+        let reset_rect = Rect::new(710, 100, 80, 80);
+        let reset_button = Button::new("Reset", reset_rect, &ttf_context);
 
-
+        // TODO: Clean up this font section and use more clear names
         let font = ttf_context.load_font("./assets/freedom.ttf", 30)
             .expect("Failed to load font");
         let surface = font.render(reset_button.text).blended(Color::WHITE).unwrap();
@@ -65,10 +64,8 @@ impl GameLoop {
         'running: loop {
             self.window.clear_canvas();
 
-            match self.handle_input(&mut event_pump) {
-                true => {}
-                false => { break 'running }
-            };
+            // Break the loop if the input loop returns false after the user closes the program
+            if !self.handle_input(&mut event_pump, &reset_button) { break 'running; }
 
             // The rest of the game loop goes here...
             self.window.canvas.clear();
@@ -107,7 +104,7 @@ impl GameLoop {
         }
     }
 
-    fn handle_input(&mut self, event_pump: &mut EventPump) -> bool {
+    fn handle_input(&mut self, event_pump: &mut EventPump, reset_button: &Button) -> bool {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } |
@@ -118,25 +115,21 @@ impl GameLoop {
                     println!("Pressed {key}!");
                 }
                 Event::MouseButtonUp { mouse_btn, x, y, .. } => {
-                    self.handle_click(mouse_btn, x, y);
+                    self.handle_click(mouse_btn, x, y, reset_button);
                 }
                 _ => {}
             }
         }
-        return true;
+        true
     }
 
-    fn handle_click(&mut self, mouse_btn: MouseButton, x: i32, y: i32) {
+    fn handle_click(&mut self, mouse_btn: MouseButton, x: i32, y: i32, reset_button: &Button) {
         match mouse_btn {
             MouseButton::Left => {
                 println!("x: {} y:{}", x, y);
 
                 // Check if reset button
-                let mouse_post_rect = Rect::new(x, y, 0, 0);
-                if self.reset_rect.contains_rect(mouse_post_rect) {
-                    println!("Reset button clicked!");
-                    self.reset();
-                }
+                if reset_button.is_clicked(x, y) { self.reset() }
 
                 match self.board.insert_chip((x / 100) as u32, self.game_state.turn) {
                     Some(_) => {

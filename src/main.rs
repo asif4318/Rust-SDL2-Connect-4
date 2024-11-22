@@ -1,14 +1,14 @@
 mod window;
-mod gameloop;
+mod engine;
 mod texture_manager;
 mod model;
 mod textures;
 
 extern crate sdl2;
-use crate::gameloop::GameLoop;
+use crate::engine::Engine;
 
 fn main() {
-    let mut game_loop = GameLoop::new("Connect 4 - Rust SDL2")
+    let mut game_engine = Engine::new("Connect 4 - Rust SDL2")
         .expect("Failed to initialize game loop");
-    game_loop.run().expect("Startup Error!");
+    game_engine.run().expect("Startup Error!");
 }
