@@ -6,31 +6,26 @@ use sdl2::video::{Window};
 use crate::model::tilestate::TileState;
 use crate::texture_manager::TextureManager;
 
-pub struct BoardTiles {
-    pub grid: Vec<Vec<TileState>>,
-}
-
-impl BoardTiles {
-    pub fn new() -> Self {
-        let grid = vec![vec![TileState::EMPTY; 7]; 6];
-        BoardTiles { grid }
-    }
-    fn size(&self) -> (usize, usize) {
-        (self.grid.len(), self.grid[0].len())
-    }
-}
-
 pub struct Board {
-    pub tiles: BoardTiles,
+    pub tiles: Vec<Vec<TileState>>,
     pub has_win: bool,
 }
 
 impl Board {
+    pub fn new() -> Self {
+        let tiles =  vec![vec![TileState::EMPTY; 7]; 6];
+        Board { tiles, has_win: false }
+    }
+
+    pub fn size(&self) -> (usize, usize) {
+        (self.tiles.len(), self.tiles[0].len())
+    }
+
     fn draw_tiles(&self, tile_hidden: &TextureManager, tile_red: &TextureManager, tile_yellow: &TextureManager, canvas: &mut Canvas<Window>) {
-        let (x, y) = self.tiles.size();
+        let (x, y) = self.size();
         for i in 0..x {
             for j in 0..y {
-                match self.tiles.grid[i][j] {
+                match self.tiles[i][j] {
                     TileState::EMPTY => {
                         let _ = tile_hidden.render_texture(canvas, Rect::new((j * 100) as i32, (i * 100) as i32, 100, 100));
                     }
@@ -46,7 +41,7 @@ impl Board {
     }
 
     fn get_grid(&mut self) -> &mut Vec<Vec<TileState>> {
-        &mut self.tiles.grid
+        &mut self.tiles
     }
 
     fn count_in_direction(&self, position: (usize, usize), dr: isize, dc: isize, color: TileState) -> usize {
@@ -59,9 +54,9 @@ impl Board {
             let next_col = col as isize + dc;
 
             if next_row < 0
-                || next_row >= self.tiles.grid.len() as isize
+                || next_row >= self.tiles.len() as isize
                 || next_col < 0
-                || next_col >= self.tiles.grid[0].len() as isize
+                || next_col >= self.tiles[0].len() as isize
             {
                 break;
             }
@@ -69,7 +64,7 @@ impl Board {
             row = next_row as usize;
             col = next_col as usize;
 
-            if self.tiles.grid[row][col] == color {
+            if self.tiles[row][col] == color {
                 count += 1;
             } else {
                 break;
@@ -106,7 +101,7 @@ impl Board {
     }
 
     pub fn insert_chip(&mut self, column: u32, color: TileState) -> Option<(usize, usize)> {
-        let (rows, cols) = self.tiles.size();
+        let (rows, cols) = self.size();
 
         // Check if col is within bounds
         if column >= cols as u32 {
